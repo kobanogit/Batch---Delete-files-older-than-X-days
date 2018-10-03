@@ -11,68 +11,60 @@ D:
 cd "D:/Backup & Maintenance/_BACKUP/"%folder%
 
 echo.
-rem echo "    Nettoyage anciens fichiers du dossier : " %folder%
-rem echo "    Fichiers supprimes : plus de : " %olderThan% " jours"
-echo      Nettoyage fichiers perimes dossier et nb jours :
-echo.
-rem couleur noir sur fond blanc :
-echo [7m
-echo                   %folder%     %olderThan%                      
-rem bouleur blanc sur fond noir (ré-initialisation)
+rem characters black, background white
+echo      Clean outdated files in folder :
+echo [36m                   %folder%        
+rem characters white, background black (re-initialize)
+echo [0m      Files older than :
+rem characters black, background white
+echo [36m                    %olderThan% days
+rem characters white, background black (re-initialize)
 echo [0m
 echo.
 
 REM Creation of a temporary file to count outdates files
 set file=tempFile.txt
-copy NUL %tempFile% >NUL
+copy NUL %file% >NUL
 REM Add new line in temporaryFile for each outdated file
 
-rem recherche fichiers selon critères dossier et age
-forfiles /S /d -%olderThan% /C "cmd /c echo @file >> tempFile.txt" 2>NUL
+rem search according to folder and age and store in %file%
+forfiles /S /d -%olderThan% /C "cmd /c echo @file >> %file%" 2>NUL
 
 REM Count number of lines in file = number of outdates files
 set /a FilesLinesQty=0
 for /f %%a in ('type "%file%"^|find "" /v /c') do set /a FilesLinesQty=%%a
-REM echo %file% has %FilesLinesQty% lines
-echo.
-REM si au moins 1 fichier périmé
-IF %FilesLinesQty% GTR 0 echo         %FilesLinesQty% fichiers perimes
-IF %FilesLinesQty% GTR 0 del "tempFile.txt"
-REM si aucun fichier périmé
-IF %FilesLinesQty% == 0 echo        Aucun fichier perime
-echo.
+REM if 1 or more outdates files :
+IF %FilesLinesQty% GTR 0 echo         Outdated files : %FilesLinesQty%
+REM si no outdates file :
+IF %FilesLinesQty% == 0 echo         Outdated files : 0
+del "tempFile.txt"
 
 REM Delete outdates files
 IF %FilesLinesQty% GTR 0 ForFiles /s /d -%olderThan% /c "cmd /c del @path"
 
-REM Count remaining backup files kept
+REM Count remaining backup files left in backup folder
 set count=0
 for %%x in (*.*) do set /a count+=1
-echo         %count% fichier(s) restant(s) apres nettoyage :
+rem echo         Remaining files after cleaning : %count%
 
-REM si minimum 1 fichier conserver : OK
+REM If 1 or more remaining files : OK
 IF %count% GTR 0 (
 	echo.
+	echo         [42mCleaning OK[0m
+	echo         [42mRemaining backup files after cleaning : %count% 
+	echo [0m [32m
+	REM : Remaining files list after cleaning :  :
+	FORFILES /S /C "cmd /c echo          @file" 
+	echo 
+)
+
+IF %count% == 0 (
+	echo  [101m
+	echo         Remaining files after cleaning : %count%  
 	echo.
-	echo         Nettoyage OK : %count% fichiers backup recent existants :
-	)
-IF %count% GTR 0 echo.
-IF %count% GTR 0 echo  [42m
-IF %count% GTR 0 echo         Nettoyage OK : %count% fichiers backup recent existants :
-IF %count% GTR 0 echo [0m [32m
-rem IF %count% GTR 0 echo  [32m
-
-REM : Liste des fichiers conservés
-FORFILES /S /C "cmd /c echo             @file" 
-IF %count% GTR 0 echo 
-
-IF %count% == 0 echo  [101m
-IF %count% == 0 echo.
-IF %count% == 0 echo.
-IF %count% == 0 echo          PROBLEME : aucun fichier restant dans le dossier
-IF %count% == 0 echo.
-IF %count% == 0 echo.
-IF %count% == 0 echo 
+	echo         PROBLEM : NO BACKUP FILE LEFT IN BACKUP FOLDER
+	rem echo 
+)
 echo.
 echo.
 
