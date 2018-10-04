@@ -1,14 +1,22 @@
 @echo off
 
+REM call with arguments :
 REM "D:\Backup & Maintenance\_BACKUP\_Batch\API-delete-old-files.bat" test 14
 
-REM Folder :
-set folder=%~1
+REM path :
+set pathReceived="%~1"
 REM DAYS :
 set olderThan=%~2
 
-D:
-cd "D:/Backup & Maintenance/_BACKUP/"%folder%
+rem extract partion from pathReceived
+set partition=%pathReceived:~1,2%
+REM set folder variable
+for %%f in (%pathReceived%) do set folder=%%~nxf
+rem change partition
+cd /D %partition%
+rem change working path
+cd /D %pathReceived%
+
 
 echo.
 rem characters black, background white
@@ -17,7 +25,7 @@ echo [36m                   %folder%
 rem characters white, background black (re-initialize)
 echo [0m      Files older than :
 rem characters black, background white
-echo [36m                    %olderThan% days
+echo [36m                   %olderThan% days
 rem characters white, background black (re-initialize)
 echo [0m
 echo.
@@ -45,7 +53,6 @@ IF %FilesLinesQty% GTR 0 ForFiles /s /d -%olderThan% /c "cmd /c del @path"
 REM Count remaining backup files left in backup folder
 set count=0
 for %%x in (*.*) do set /a count+=1
-rem echo         Remaining files after cleaning : %count%
 
 REM If 1 or more remaining files : OK
 IF %count% GTR 0 (
